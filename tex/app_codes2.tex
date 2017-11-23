@@ -1,0 +1,38 @@
+\chapter{附录B\quad 底层模块声明和定义}
+\label{chap:dsrc}
+\begin{lstlisting}[language={C}, caption={DISK.H}]
+//  disk.h
+//  SDC
+//  Created by 蒲思行 on 15/5/1.
+//  Copyright (c) 2015年 Benny. All rights reserved.
+#ifndef _DISKIO_DEFINED
+#define _DISKIO_DEFINED
+
+#include "integer.h"
+/* Results of Disk Functions */
+typedef enum {
+    DR_OK = 0,                      // 0: Function succeeded
+    DR_RW_ERR,                      // 1: Disk error
+    DR_INIT_ERR,                    // 2: Not ready
+    DR_PARERR                       // 3: Invalid parameter
+}DRESULT;
+// Prototypes for disk control functions
+DRESULT disk_initialize (BYTE *type);
+void disk_speedup();
+DRESULT disk_read (BYTE* buff, DWORD sector); //read a sector
+DRESULT disk_write (BYTE* buff, DWORD sector); // write a sector
+DRESULT disk_offset(DWORD sec);
+
+void SYSCLK_Init (void);
+void PORT_Init (void);
+void SPI0_Init (void);
+void Timer0_ms (unsigned ms);
+void Timer0_us (unsigned us);
+
+#define SYSCLK         16000000
+#define V2HC            0x03
+#define V2SC            0x02
+#define V1X             0x01
+
+#endif
+\end{lstlisting}

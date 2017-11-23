@@ -1,0 +1,311 @@
+%%==================================================
+%% chapter04.tex for NWPU Bachelor Thesis
+%% Encoding: UTF-8
+%%==================================================
+
+\chapter{实现}
+\label{chap:Implementation}
+
+
+\section{概述}
+\label{sec:implementcomment}
+之前的章节阐述了上层模块的逻辑设计，包含了FAT文件系统的结构及参数信息\footnote{参见第\ref{chap:fat}章}，
+本章将具体描述文件接口上层模块的具体实现（Implementation）方法。
+
+对于上层模块，主要担负着完成项目要求的各项功能的任务，是整个工程最重要的也是最复杂的部分，是文件接口的核心。
+同时，鉴于其与底层驱动模块以及底层硬件的联系不很紧密，本模块具有很好的可移植性和拓展性。
+接下来，本节将具体描述FAT32文件接口的构建过程，出于对易读性的考虑，本节力求减少源代码的使用，
+对于比较繁杂的函数尽量使用自然语言进行算法描述。
+\section{前期准备}
+\label{sec:prepare}
+在开始描述具体的算法之前，有必要首先介绍本模块用到的数据类型，它们将在之后的函数中发挥重要的作用，
+同时可以省很多不必要的麻烦，在模块化的设计过程中，使用合理的数据结构及可复用的函数模块能够减少思维的复杂度，
+简化设计。
+
+本工程定义了以下长度的数据类型以满足可移植性的要求，鉴于「int」类型在不同CPU上有不同的定义长度，
+故不使用。具体定义如下：
+\begin{lstlisting}[language={C}, caption={数据类型重定义}]
+//长8位
+typedef unsigned char	BYTE;
+//长16位
+typedef unsigned short	WORD;
+//长32位
+typedef unsigned long	DWORD;
+\end{lstlisting}
+
+接下来可以定义所需的结构体了。由于本工程不是很复杂，所以文件系统（FatFS）的结构体中除了包含FAT32文件体统参数信息之外，
+还包含了文件的信息（比如文件指针、文件大小、起始簇号等）。
+\begin{lstlisting}[language={C}, caption={文件系统的结构体}]
+typedef struct {
+	BYTE	fs_type;        //FAT文件系统的类型（FAT12、FAT16或FAT32）
+	BYTE	csize;          //簇大小（单位为扇区）
+	DWORD	n_fatent;       //FAT表的总记录数（卷可用簇数加2）
+    DWORD   fatsize;        //单张FAT表的大小
+	DWORD	fatbase;        //首张FAT表的起始地址（单位为扇区）
+	DWORD	dirbase;        //根目录区起始地址（单位为扇区）
+	DWORD	database;       //数据区起始地址（单位为扇区）
+    //FSINFO项
+    WORD    fsi_sec;        //FSINFO 的扇区号
+    DWORD   freecont;       //空闲簇数
+    DWORD   nxtfree;        //下个空闲簇号
+    // 文件项
+    BYTE    flag;
+    DWORD	fptr;           //文件的读写指针
+	DWORD	fsize;          //文件大小
+	DWORD	org_clust;      //文件起始簇号
+	DWORD	curr_clust;     //文件当前簇号
+	DWORD	curr_sect;		//文件当前扇区号
+} FATFS;
+
+\end{lstlisting}
+除此外，还定义了目录项（Directory Entry）的结构体。
+\begin{lstlisting}[language={C}, caption={目录项的结构体}]
+typedef struct {
+	WORD	index;          //该目录项在目录表的序号
+	BYTE	fn[12];         //文件名
+	DWORD	sclust;         //目录表的起始簇号
+	DWORD	clust;          //目录表的当前簇号
+	DWORD	sect;           //目录表的当前扇区号
+} DIR;
+\end{lstlisting}
+\section{FAT表的相关操作}
+\label{sec:fatfunc}
+在第\ref{chap:fat}章提到过的算法\ref{algo:getfat}和算法\ref{algo:putfat}分别描述了从FAT表中读取簇号和写入簇号。
+这两个基础的算法在后面会很常用，凡是需要对FAT表进行操作都需要使用。
+
+算法\ref{algo:creatchain}和算法\ref{algo:rmchain}，
+分别描述了如何新建和删除一个簇链。
+\begin{balgo}{创建簇链}{algo:creatchain}
+\begin{algorithmic}[1]
+\Require $Clst_a$
+\Ensure $Clst_r$
+\If{$Clst_a$ is invalid}
+    \State \Return Error: Invalid clusters number
+\ElsIf{Create a new cluster chain}
+    \If{FSI\_NxtFree is invalid}
+        \State Search the EMPTY clst from \#2
+    \Else
+        \State Search the EMPTY clst from FSI\_NxtFree
+    \EndIf
+    \State Put EOC as the value of $Clst_r$ in FAT
+\ElsIf{Stretch the $Clst_a$ }
+    \State Get the last clst of the current chain
+    \If{FSI\_NxtFree is invalid}
+        \State Search the EMPTY clst from \#2
+    \Else
+        \State Search the EMPTY clst from FSI\_NxtFree
+    \EndIf
+    \State Put EOC as the value of $Clst_r$ in FAT
+    \State Put $Clst_r$ as the value of $Clst_a$ in FAT
+\EndIf
+\State Update FSINFO struct
+\State\Return $Clst_r$
+\end{algorithmic}
+\end{balgo}
+
+算法\ref{algo:creatchain}需要同时考虑到创建一个新的簇链，和在给定一个簇号的情况下续接其所在的簇链。
+至于删除簇链，只需沿着起始簇号删除沿途经过的簇号即可。
+\begin{balgo}{删除簇链}{algo:rmchain}
+\begin{algorithmic}[1]
+\Require $Clst_a$
+\If{$Clst_a$ is invalid}
+    \State \Return Error: Invalid clusters number
+\Else
+    \Repeat
+    \State Put the EMPTY as the value of the current clst in FAT
+    \State Foward the clst pointer of the chian
+    \Until{Get the last clst of the chain}
+    \State Put the EMPTY as the value of the last clst in FAT
+    \State Update FSINFO struct
+\EndIf
+\end{algorithmic}
+\end{balgo}
+
+\section{目录相关操作}
+\label{sec:dirfunc}
+
+本节将对涉及目录操作的函数做一说明。算法\ref{algo:dirfind}描述了在一个目录表\footnote{通常是根目录}中检错目录项的过程。
+检索时要注意目录表是否是跨簇的长表，这要求在将指针向后移动的时候要做出检查。
+鉴于一个簇总是包含2的整数次幂个扇区，故首先判断指针是否在扇区边界，然后在判断是否在簇的边界。
+如果在扇区边界，要与硬盘交换扇区（不能跨扇区地址读写数据）；如果在簇边界，要通过FAT表循簇链找到下一块簇，
+再将该簇的首扇区读入内存。
+\begin{balgo}{检索目录项}{algo:dirfind}
+\begin{algorithmic}[1]
+\Require DIR $*dp$
+\If{$dp$ is invalid}
+    \State \Return Error: Invalid directory
+\Else
+    \State Rewind the $*dp$ \Comment{Move the dir-pointer to the first entry of the directory table}
+    \Repeat
+    \State Get the DIR\_Name of the current dir-entry
+    \State Foward the dir-pointer of the table
+    \Until{This DIR\_Name matches dp->fn[]}
+    \If{The dir-pointer out of range}\Comment{Mismatch}
+        \State \Return Error: Not found
+    \Else
+        \State \Return Match
+    \EndIf
+\EndIf
+\end{algorithmic}
+\end{balgo}
+
+算法\ref{algo:dirreg}描述了在目录表（Directory Table）中注册一个新的目录项（Directory Entry）的过程。
+新建时要先找到一块空闲的记录项（Empty Entry），检测其DIR\_Name[0]是否为「DDEM」或「0」即可，
+具体可见第\ref{sec:dirstruct}节。
+找到空闲记录项后，在FAT表新建一个簇链，并将取得的起始簇号、目录名等信息写入该目录项即可。
+\begin{balgo}{注册目录项}{algo:dirreg}
+\begin{algorithmic}[1]
+\Require DIR $*dp$
+\If{$dp$ is invalid}
+    \State \Return Error: Invalid directory
+\Else
+    \State Rewind the $*dp$
+    \Repeat
+    \State Get the DIR\_Name[0] of the current dir-entry
+    \State Foward the dir-pointer of the table
+    \Until{This DIR\_Name[0] matches DDEM or 0x00}
+    \If{The dir-pointer out of range}\Comment{Mismatch}
+        \State \Return No free entry
+    \Else
+        \State Creat a new cluster chain in FAT, get the $Clst_r$
+        \State Store the $Clust_r$ and dp->fn[] in entry
+    \EndIf
+\EndIf
+\end{algorithmic}
+\end{balgo}
+
+\section{文件相关操作}
+\label{sec:filfunc}
+
+首先进行文件系统挂载的函数说明，算法\ref{algo:mountfs}描述了该过程。
+该算法重点在于DBR扇区的正确加载。物理上的「0」号扇区一般是MBR记录，其在偏移0x1C6开始的4个字节中，记录了DBR的起始扇区。
+需要再次强调的是，磁盘上的存储字节的方式都是小端模式，有时可能需要转换。
+通过之前的算法\ref{algo:cntofclus}、算法\ref{algo:voltype}、算法\ref{algo:fatent}，
+可以得到文件系统的相关信息，并记录在$fs$所指向的文件系统数据类型中。
+\begin{balgo}{挂载文件系统}{algo:mountfs}
+\begin{algorithmic}[1]
+\Require FATFS $*fs$
+\State Check if physical drive is ready or not
+\State Load $0^{th}$ sector if okay
+\If{Offset 510 and offset 511 $\neq$ 0xaa55}
+    \State \Return Error: Not a boot sector
+\ElsIf{The first byte of $0^{th}$ sector $\neq$ 0xEB}
+    \State Get the dbr sector number which read at offset 0x1C6
+    \State Load the dbr sector
+\Else 
+    \State This sector is dbr sector
+\EndIf
+\State Load the information from bpb,bs,fsinfo struct
+
+\end{algorithmic}
+\end{balgo}
+
+在挂载文件系统之后，$*fs$会作为全部变量存在，即该文件系统的指针始终可用，知道程序终结，
+故之后的函数都可以调用这个指向文件系统的指针。
+
+接下来就是打开文件（创建文件）操作的函数，见算法\ref{algo:fopen}。
+如果在根目录表中找不到给出的文件名，说明该文件不存在，此时需要新建一个文件。
+通过算法\ref{algo:dirreg}在根目录表中新建一个包含该文件名的目录项，之后更新各个数据结构中的信息。
+需注意，每次新打开文件后，文件指针都为零。
+\begin{balgo}{打开文件}{algo:fopen}
+\begin{algorithmic}[1]
+\Require CONST BYTE $*name$,\quad DIR $*dp$
+\If{File system not mounted}
+    \State \Return Error: Not mounted
+\EndIf
+\If{$*name$ Including invalid characters}
+    \State \Return Error: Invalid file name
+\Else
+    \State Change it to proper type and store it in buffers \Comment{Must be UPPERCASE}
+\EndIf
+\If{Not found the $*name$ in root directory}
+    \State Register an entry in directory table
+    \If{Not found the $*name$}
+        \State \Return Error: Register error
+    \EndIf
+\EndIf
+\State Update the relative information of $*fs$
+\end{algorithmic}
+\end{balgo}
+
+文件打开后就可以通过文件读写指针来读写文件了，分别如算法\ref{algo:fread}和\ref{algo:fwrite}所示。
+读文件和写文件操作正好相反，整体类似，都需要注意跨扇区和跨簇的问题，前者只需要重新加载一个新扇区即可，
+但是跨簇时要通过簇链找到下一块簇，并加载该簇的第一个扇区。
+\begin{balgo}{读文件}{algo:fread}
+\begin{algorithmic}[1]
+\Require BYTE $*buff$,\quad DWORD $btr$ \Comment{Read-buffers and the number of bytes to read}
+\If{File not opened}
+    \State \Return Error: Not opened
+\EndIf
+\Repeat
+\If{The file r/w pointer on the sector boundary}
+    \If{The file r/w pointer on the cluster boundary}
+        \State Update the current cluster number by cluster chain from FAT
+    \Else
+        \State Update the current sector number
+    \EndIf
+\EndIf
+\State Load the current sector to buffers
+\State Read data to $*buff$
+\State Update the r/w pointers and $btr$
+\Until{All bytes have been transfered}
+\end{algorithmic}
+\end{balgo}
+
+对于写操作，还要注意更新文件大小信息，并且，当簇链循到了最后一个簇号时还要新建簇号以续接簇链。
+\begin{balgo}{写文件}{algo:fwrite}
+\begin{algorithmic}[1]
+\Require BYTE $*buff$,\quad DWORD $btw$ \Comment{Write-buffers and the number of bytes to write}
+\If{File not opened}
+    \State \Return Error: Not opened
+\EndIf
+\If{The file size will be greater after write operation}
+    \State Update the file size
+\EndIf
+\Repeat
+\If{The file r/w pointer on the sector boundary}
+    \If{The file r/w pointer on the cluster boundary}
+        \State Update the current cluster number by cluster chain from FAT
+        \If{Meet the last cluster of the chain}
+            \State Join a new empty cluster to the chain
+        \EndIf
+    \Else
+        \State Update the current sector number
+    \EndIf
+\EndIf
+\State Load the current sector to buffers
+\State Write the data from $*buff$ to sectors
+\State Update the r/w pointers and $btr$
+\Until{All bytes have been transfered}
+\end{algorithmic}
+\end{balgo}
+
+最后，文件的操作还涉及到了删除文件。
+如算法\ref{algo:frm}所示，删除文件相对而言比较简单，只需清空目录项（Directory Entry），
+然后在FAT表中删除簇链，最后更新FSINFO数据结构即可。
+\begin{balgo}{删除文件}{algo:frm}
+\begin{algorithmic}[1]
+\Require CONST BYTE $*name$
+\If{File system not mounted}
+    \State \Return Error: No file system
+\EndIf
+\If{$*name$ Including invalid characters}
+    \State \Return Error: Invalid file name
+\Else
+    \State Change it to proper type and store it in buffers
+\EndIf
+\If{Not found $*name$ in the directory}
+    \State \Return Error: No such file
+\EndIf
+\State Clear the directory entry in table (set DDEM in DIR\_Name[0])
+\State Remove the cluster chain in FAT
+\State Update the FSINFO
+\end{algorithmic}
+\end{balgo}
+
+
+\section{本章小结}
+\label{sec:sum4}
+本章详细阐述了上层模块的具体实现过程，
+重点描述了相关的函数接口的具体算法实现，出于简洁性和易读性的考虑，
+全部采用自然语言的描述方法，同时，在第\ref{chap:fat}章出现过的算法本章讲不在赘述。

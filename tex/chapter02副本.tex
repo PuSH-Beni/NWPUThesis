@@ -1,0 +1,349 @@
+%%==================================================
+%% chapter02.tex for NWPU Bachelor Thesis
+%% Encoding: UTF-8
+%%==================================================
+
+\chapter{设计}
+\label{chap:Design}
+本章将具体描述FAT32文件系统接口的整体架构和设计思路。
+从要求实现的功能出发，将本接口分为两个模块，并为每个模块都设计符合规定的应用程序接口（API）以供上层程序调用。
+
+本章将阐述上层模块，即FAT文件系统部分，作为整个工程中的一个子模块的逻辑设计过程。
+在详细说明FAT文件系统组成结构的基础上，简要描述部分算法以便理解。
+本模块为顶层用户程序提供的API如下：
+\begin{lstlisting}[language={C}, caption={上层模块的API}]
+// FAT module application interface
+FRESULT f_mount (FATFS* fs, BYTE *sd_type);                         //FAT文件系统的挂载
+FRESULT f_open (const char* name, DIR* dj);                         //打开文件
+FRESULT f_close(void);                                              //关闭文件
+FRESULT f_read (BYTE* buff, DWORD btr, DWORD* br);                  //读文件到缓存
+FRESULT f_write (const BYTE* buff, DWORD btw, DWORD* bw, DIR* dj);  //从缓存写文件
+FRESULT f_seek_ptr (DWORD ptr);                                     //重设文件中的读写指针
+FRESULT f_rm (const char* name, DIR* dj);                           //删除文件
+\end{lstlisting}
+整个FAT文件系统最初是基于IBM的PC架构而研发的，由此有一个很重要的特性就是，
+FAT文件系统在磁盘上的数据是以小端模式\footnote{与此相对的，还存在另一种存储方式，
+即大端模式（Big Endian）}（Little Endian）存储的。
+\begin{table}[!htb]
+  \centering
+  \caption[小端模式存储示例]{32位数据在小端模式下的结构}\label{tab:littleendian}
+  \begin{tabular}{lcr} \toprule
+      byte[3] & &3 3 2 2 2 2 2 2 \\
+              & &1 0 9 8 7 6 5 4 \\
+      byte[2] & &2 2 2 2 1 1 1 1 \\
+              & &3 2 1 0 9 8 7 6 \\
+      byte[1] & &1 1 1 1 1 1 0 0 \\
+              & &5 4 3 2 1 0 9 8 \\
+      byte[0] & &0 0 0 0 0 0 0 0 \\
+              & &7 6 5 4 3 2 1 0 \\ \bottomrule
+  \end{tabular}
+\end{table}
+一个FAT文件系统卷由四个基本区域组成，它们顺序排列如下：
+\begin{enumerate}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,leftmargin=6cm]
+    \item[0) ––] 保留区（Reserved Region）
+    \item[1) ––] FAT表区（FAT Region）
+    \item[2) ––] 根目录区\footnote{FAT32文件系统卷不存在根目录区}（Root Directory Region）
+    \item[3) ––] 数据区（File and Directory Data Region）
+\end{enumerate}
+\section{启动扇区和BPB}     %offsets
+\label{sec:bsbpb}
+FAT卷上第一重要的数据结构被称作BPB（BIOS Parameter Block），它位于保留区域（Reserved Region）的第一个扇区。
+该扇区有时又被称为启动扇区（Boot Sector）、保留扇区（Reserved Sector）或零号扇区（$0^{th}$ Sector），
+事实上，它是整个FAT卷的第一个扇区。
+
+启动扇区的具体结构如表\ref{tab:bsbpb}所示，其中需要注意的是，名字以「BPB\_」开头的项是BPB的一部分，
+而以「BS\_」开头的项是Boot Sector的一部分，并不属于BPB。
+\begin{longtable}[!htb]{lccp{7cm}}
+\caption{启动扇区与BPB结构} \label{tab:bsbpb}\\
+    \toprule
+    \makecell[c]{名称} & 偏移(byte) & 长度(bytes) & \makecell[c]{描述} \\ \midrule
+    BS\_JumpBoot & 0 & 3 & 跳向启动代码，常用值是「0xEB」。\\ \midrule
+    BS\_OEMName & 3 & 8 & 这只是一个名称字符串，推荐值是「MSWIN4.1」。\\ \midrule
+    BPB\_BytsPerSec & 11 & 2 & 扇区字节数，仅可从「512」、「1024」、「2048」或「4096」中取值。
+    推荐值为「512」，此时具有最好的兼容性。\\ \midrule
+    BPB\_SecPerClus & 13 & 1 & 每簇扇区数，取值必须为2的次幂，并且大于0。合法值为「1」、「2」、
+    「4」、「8」、「16」、「32」、「64」及「128」。然而要注意的是，
+    每簇字节数（BPB\_BytsPerSec * BPB\_SecPerClus）不能超过32K（32 * 1024）。\\ \midrule
+    BPB\_RsvdSecCnt & 14 & 2 & 保留区域的扇区数目，必须为非零值。FAT12和FAT16必须为「1」，
+    FAT32典型值为「32」。\\ \midrule
+    BPB\_NumFATs & 16 & 1 & FAT表在磁盘卷上的数目，通常设为「2」。\\ \midrule
+    BPB\_RootEntCnt & 17 & 2 & 对FAT12和FAT16来说，这是根目录能够容纳的目录/文件记录（32B-Entries）的数目。
+    对FAT32而言，此值域必须为「0」。\\ \midrule
+    BPB\_TotSec16 & 19 & 2 & 卷中的总扇区数，对FAT32卷此域必须为「0」。若此域为「0」，
+    BPB\_TotSec32必须非零。 \\ \midrule
+    BPB\_Media & 21 & 1 & 「0xF8」是非可插拔媒介的标准值，「0xf0」是可插拔媒体的常用值。\\ \midrule
+    BPB\_FATSz16 & 22 & 2 & 对FAT12和FAT16有效，是\textbf{单张}FAT表大小（所占扇区数）。FAT32此域必须为「0」，
+    同时BPB\_FATSz32必须非零。\\ \midrule
+    BPB\_SecPerTrk & 24 & 2 & 磁道扇区数 \\ \midrule
+    BPB\_NumHeads & 26 & 2 & 磁头数 \\ \midrule
+    BPB\_HiddSec & 28 & 4 & 隐藏扇区数，位于包含文件系统卷的分区之前。无分区则设为「0」。\\ \midrule
+    BPB\_TotSec32 & 32 & 4 & FAT32文件系统卷的总扇区数。\\
+    \bottomrule
+\end{longtable}
+
+接下来的表\ref{tab:fat32off36}是FAT32文件系统从Offset 36开始的数据结构。注意，FAT12/FAT16和FAT32在这之后的参数是不同的，
+它们也有自己的一张表格，限于篇幅就不列出了。
+\begin{longtable}[!htbp]{lccp{7cm}}
+\caption{FAT32在Offset 36之后的参数} \label{tab:fat32off36} \\
+    \toprule
+    \makecell[c]{名称} & 偏移(byte) & 长度(bytes) & \makecell[c]{描述} \\ \midrule
+    BPB\_FATSz32 & 36 & 4 & \textbf{单张}FAT表大小（扇区数），仅对FAT32有效。\\ \midrule
+    BPB\_ExtFlags & 40 & 2 & Bits 0-3 ––– 激活的FAT表数目，从零开始。\\
+                  &   &    & Bits 4-6 ––– 保留。\\
+                  &   &    & Bits\hspace{1em}7 ––– 「0」表示FAT表随时进行备份；「1」表示只有一个FAT表被激活。\\
+                  &   &    & Bits 8-15 –– 保留。 \\ \midrule
+    BPB\_FSVer & 42 & 2 & FAT32卷的版本号。\\ \midrule
+    BPB\_RootClus & 44 & 4 & FAT32的根目录的起始簇号，通常设置为「2」。\\ \midrule
+    BPB\_FSInfo & 48 & 2 & FSINFO结构在保留区的扇区号，通常设为「1」。\\ \midrule
+    BPB\_BkBootSec & 50 & 2 & 如果此域非零，则表示启动记录在保留区的备份扇区号，推荐值为「6」。\\ \midrule
+    BPB\_Reserved & 52 & 12 & 未来扩展的保留域，格式化时必须全部置零。\\ \midrule
+    BS\_DrvNum & 64 & 1 & 设备编号，硬盘可设为「0x80」，软盘「0x00」。\\ \midrule
+    BS\_Reserved1 & 65 & 1 & 用于Windows NT。格式化时置零。\\ \midrule
+    BS\_BootSig & 66 & 1 & 扩展的启动标识。\\ \midrule
+    BS\_VolID & 67 & 4 &  FAT文件系统卷编号，常和BS\_VolLab一起用来跟踪可移动媒介。 \\ \midrule
+    BS\_VolLab & 71 & 11 & 卷标，无卷标时此域被设置为「\textbf{NO NAME}\qquad\qquad」。\\ \midrule
+    BS\_FilSysType & 82 & 8 & 设置为字符串：「\textbf{FAT12}\qquad\quad」，「\textbf{FAT16}\qquad\quad」，
+    「\textbf{FAT}\qquad\qquad\quad」中的一个。\\
+    \bottomrule
+\end{longtable}
+
+另外一个很重要的点是，对于FAT卷的第一块扇区，即Boot Sector（$0^{th}$ Sector），如果将其内容以字节为单位当成数组的话，
+那么Sector[510]等于「0x55」，Sector[511]等于「0xAA」。
+
+\section{FAT数据结构}
+\label{sec:datastruct}
+
+在BPB之后的另一个重要的数据结构就是FAT数据结构本身。FAT数据结构为每个文件都定义了一个单链表，链接着文件在数据区所占据的每一个簇号。
+这样看来，目录（Directory）也不过是一种文件，只不过它有一些参数用来被文件系统识别成目录。
+FAT表是通过簇号（Cluster Number）来映射文件卷（Volume）上的数据区（Data Region）的，第一个可用簇号是「2」号簇。
+
+「2」号簇的第一个扇区将通过文件卷的BPB域的一些参数计算得出，同时，这个扇区也是数据区的第一个扇区。
+具体如算法\ref{algo:firstsec}所示。
+\begin{balgo}{求数据区的第一个扇区}{algo:firstsec}
+\begin{algorithmic}
+\Ensure $FATSz$, $FirstDataSec$
+\If{$BPB\_FATSz16 \neq 0$}
+\Comment{判断单张FAT表的大小由哪个域决定}
+    \State $FATSz \gets BPB\_FATSz16$
+\Else
+    \State $FATSz \gets BPB\_FATSz32$
+\EndIf
+\State $FirstDataSector \gets BPB\_ResvdSecCnt + (BPB\_NumFATs \times FATSz) + RootDirSectors$
+\Comment{FAT32的RootDirSectors等于零}
+\end{algorithmic}
+\end{balgo}
+
+需要注意的是，这里的扇区号是相对于包含BPB的文件卷（Volume）的第一个扇区（Sector 0）而言的，
+毕竟文件卷的第一个扇区不一定是设备（Drive）的第一个扇区（磁盘分区会产生影响）。
+
+
+\section{FAT类型定义}  %FAT12,16,32,FAT_TABLE
+\label{sec:fattype}
+
+FAT文件系统的类型（「FAT12」、「FAT16」、「FAT32」）仅仅取决于文件卷上的簇数，而与其他参数无关。
+通过算法\ref{algo:cntofclus}，可以计算出卷中的簇数。
+\begin{balgo}{求文件卷的簇数}{algo:cntofclus}
+\begin{algorithmic}
+\Require $FATSz$
+\Ensure $CountofClusters$
+\If{$BPB\_TotSec16 \neq 0$}
+    \State $TotSec \gets BPB\_TotSec16$
+\Else
+    \State $TocSec \gets BPB\_TotSec32$
+\EndIf
+\State $DataSec \gets TotSec - (BPB\_ResvdSecCnt + BPB\_NumFATs \times FATSz + RootDirSectors)$
+\Comment{FAT32的RootDirSectors等于零}
+\State $CountofClusters \gets DataSec \div BPB\_SecPerClus$
+\end{algorithmic}
+\end{balgo}
+
+接下来可以由$CountofClusters$得到FAT卷的类型(算法\ref{algo:voltype})。
+\begin{balgo}{求文件卷的类型}{algo:voltype}
+\begin{algorithmic}
+\Require $CountofClusters$
+\Ensure $FATType$
+\If{$CountofClusters < 4085$}
+    \State $FATType \gets FAT12$  \Comment{$Volume\ is\ FAT12$}
+\ElsIf{$CountofClusters < 65525$}
+    \State $FATType \gets FAT16$ \Comment{$Volume\ is\ FAT16$}
+\Else
+    \State $FATType \gets FAT32$ \Comment{$Volume\ is\ FAT32$}
+\EndIf
+\end{algorithmic}
+\end{balgo}
+
+这里的$CountofClusters$是指数据区（Data Region）的总簇数，不过由于数据区的簇号是从「2」号簇开始计数的，
+因此整个文件卷的最大可用簇号是$CountofClusters + 1$。同时，如果包含两个保留簇号（「0」号和「1」号簇），
+那么所有簇号的总数应该是$CountofClusters + 2$。
+
+接下来我们将面临一个很重要的问题，这涉及到FAT系统的基础：给定任意合法簇号$N$，FAT表中的相应簇号的记录在哪？
+这对于FAT12而言比较复杂，鉴于它过于古老，我们就不涉及了。现在重点研究FAT32的计算方法。
+\begin{balgo}{求FAT表的簇号记录}{algo:fatent}
+\begin{algorithmic}
+\Require $N$, $FATType$
+\Ensure $FATSecNum$,  $FATEntOffSet$
+\If{$FATType = FAT16$}
+    \State $FATOffSet \gets N \times 2$
+\Else
+    \State $FATOffSet \gets N \times 4$
+\EndIf
+\State $FATSecNum \gets BPB\_ResvdSecCnt + FATOffset \div BPB\_BytsPerSec$
+\State $FATEntoffSet \gets FATOffset \pmod{BPB\_BytsPerSec}$
+\end{algorithmic}
+\end{balgo}
+
+在算法\ref{algo:fatent}中的$FATSecNum$是簇号记录在第一张FAT表上的扇区号，如果想得到第二张FAT表上对应记录的扇区号，
+只需要对$FATSecNum$加$FATSz$即可，之后\footnote{如果该卷的FAT不止两张的话}的FAT表依此类推。
+
+现在让我们假设，$FATSecNum$这个扇区\footnote{要注意，这个扇区号是相对于卷的第一个扇区而言的}被读进了一个名为$Buff$的字节数组。
+同时再假定$WORD$是一个16位无符号数（16-bit Unsigned），$DWORD$是一个32位无符号数（32-bit Unsigned）。
+我们通过算法\ref{algo:getfat}从FAT表得到该簇号记录的内容（其实是该簇号$N$所在簇链的下一个簇号）。
+\begin{balgo}{求FAT表簇号记录的内容（$ClusEntVal$）}{algo:getfat}
+\begin{algorithmic}
+\Require $FATEntOffSet$
+\If{$FATType = FAT16$}
+    \State $FAT16ClusEntVal \gets *((WORD*)\ \&Buff[FATEntOffSet])$
+\Else
+    \State $FAT32ClusEntVal \gets$
+    \State $(*((DWORD*)\ \&Buff[FATEntOffset]))\quad\&$\quad0x0FFFFFFF
+\EndIf
+\end{algorithmic}
+\end{balgo}
+
+通过算法\ref{algo:putfat}将内容存入FAT表的相应记录。
+\begin{balgo}{将内容（$ClusEntVal$）存入FAT表相应记录}{algo:putfat}
+\begin{algorithmic}
+\Require $FATEntOffSet$
+\If{$FATType = FAT16$}
+    \State $*((WORD *)\ \&Buff[FATEntOffset]) \gets FAT16ClusEntryVal$
+\Else
+    \State $FAT32ClusEntryVal \gets FAT32ClusEntryVal\quad\&$\quad0x0FFFFFFF
+    \State $*((DWORD *)\ \&Buff[FATEntOffset]) \gets$
+    \State $(*((DWORD *) \&Buff[FATEntOffset]))\quad\&$\quad0xF0000000
+    \State $*((DWORD *)\ \&Buff[FATEntOffset]) \gets$
+    \State $(*((DWORD *) \&Buff[FATEntOffset]))\quad|\quad FAT32ClusEntryVal$
+\EndIf
+\end{algorithmic}
+\end{balgo}
+
+注意到$FAT32ClusEntVal$在两个算法都有「\& 0x0FFFFFFF」的操作，这是因为FAT32的FAT簇号实际只有28位可用，
+高4位是保留位。高4位只有在格式化文件系统的时候才会被改变，此时，它们连同低28位一起被置零。
+
+文件在FAT系统上是这样组织的：
+在目录记录表（Directory Entry）中，文件（File）的起始簇号会被登记下来，同时，FAT表中会为它创建一条簇号链（Cluster Chain）。
+之后每次要读写该文件时，只需顺着簇号链沿途索引即可，得到的每一个簇号（$N$）都对应了文件在数据区（Data Region）的每一个数据簇。
+通过前面的算法\ref{algo:firstsec}得到的$FirstDataSec$再加上簇号$N$在数据区的偏移即可得到该簇的第一块扇区号。
+详见算法\ref{algo:clus2sec}。
+\begin{balgo}{求簇号$N$的起始扇区号}{algo:clus2sec}
+\begin{algorithmic}
+\Require $FirstDataSec$,$N$
+\State $FirstSecofClus \gets FirstDataSec + (N - 2)\times BPB\_SecPerClus$
+\State\Comment{这里簇号$N$要减去「2」是因为簇号是从「2」号簇开始的，尽管在物理上「2」号簇是数据区的第一个簇。}
+\end{algorithmic}
+\end{balgo}
+
+注意对空文件而言，其起始簇号在FAT表中的记录内容是$EOC$\footnote{End Of Clusterchain}标记。至于$EOC$标记（EOC Mark）的内容，
+取决于FAT文件系统的类型。具体的判断$EOC$标记的方法可以参见算法\ref{algo:eoc}。
+\begin{balgo}{EOC标记}{algo:eoc}
+\begin{algorithmic}
+\Require $FATType$
+\State $IsEOF \gets FALSE$
+\If{$FATType = FAT12$}
+    \If{$FATContent\quad\geq\quad$0x0FF8}
+    \State$IsEOF \gets TRUE$
+    \EndIf
+\ElsIf{$FATType = FAT16$}
+    \If{$FATContent\quad\geq\quad$0xFFF8}
+    \State $IsEOF \gets TRUE$
+    \EndIf
+\ElsIf{$FATType = FAT32$}
+    \If{$FATContent\quad\geq\quad$0x0FFFFFF8}
+    \State $IsEOF \gets TRUE$
+    \EndIf
+\EndIf
+\end{algorithmic}
+\end{balgo}
+
+当FAT表记录到文件的最后一个簇号是，该簇号记录的内容也被填上$EOC$标记。微软（Microsoft）操作系统\footnote{对于不同的系统，$EOC$
+标记可以有不同的值，但必须符合规定}的$EOC$标记对FAT12、
+FAT16和FAT32分别是 0x0FFF、0xFFFF和0x0FFFFFFF。这里还有一个坏簇标记（BAD CLUSTER)，它标记了磁盘的损坏区域，
+内容分别为 0x0FF7、0xFFF7和0x0FFFFFF7。
+
+\section{目录结构}    %dir_entries,file_entries
+\label{sec:dirstruct}
+
+FAT文件系统中的目录，实际上依然是一种文件。这种特殊的文件是由一系列32字节的目录记录（Directory Entry）所组成。
+对FAT12和FAT16而言，整个文件卷存在着一个根目录（Root Directory），它紧跟在最后一张FAT表的后面。然而，
+FAT32并不存在这种静态的根目录，而是一张动态的根目录链表。在BPB中仅记录了FAT32的根目录的起始簇号（通常为「2」号簇），
+并且文件系统格式化时，FAT32的根目录已被分配了一个簇的空间，之后会随着根目录记录的增长而自动扩展簇链，
+就如同普通目录一样。
+
+FAT32的根目录的与普通目录的不同之处在于，根目录没有时间戳（Date or Time Stamps），没有文件名\footnote{只有隐含文件名「\textbackslash」}，
+并且没有「当前目录」\footnote{「\quad.\quad」文件}文件和「父目录」\footnote{「\quad..\quad」文件}文件。另外，根目录还有比较特殊的一点是，
+它是文件卷上唯一一个可以合法拥有「ATTR\_VOLUME\_ID」标志位的文件，详细信息可见表\ref{tab:dirstruct}。
+\begin{longtable}[!htb]{lccp{7cm}}
+    \caption{FAT文件系统目录记录结构} \label{tab:dirstruct}\\
+    \toprule
+    \makecell[c]{名称} & 偏移（byte）& 长度（bytes）& \makecell[c]{描述} \\ \midrule
+    DIR\_Name & 0 & 11 & 短文件名（SFN）\\ \midrule
+    DIR\_Attr & 11 & 1 & 文件标志位：\\
+              &    &   & ATTR\_READ\_ONLY ––––– 0x01\\
+              &    &   & ATTR\_HIDDEN\hspace{2em} ––––– 0x02\\
+              &    &   & ATTR\_SYSTEM\hspace{2em} ––––– 0x04\\
+              &    &   & ATTR\_VOLUME\_ID ––––– 0x08\\
+              &    &   & ATTR\_DIRECTORY\hspace{1pt} ––––– 0x10\\
+              &    &   & ATTR\_ARCHIVE\hspace{1.5em} ––––– 0x20\\ \midrule
+    DIR\_NTRes & 12 & 1 & Windows NT的保留字节\\ \midrule
+    DIR\_CrtTimeTenth & 13 & 1 & 文件创建时间的毫秒戳 \\ \midrule
+    DIR\_FstClusHI & 20 & 2 & 本记录的起始数据簇号的高16位（FAT12和FAT16此位置零）\\ \midrule
+    DIR\_WrtTime & 22 & 2 & 文件的最后写入时刻\\ \midrule
+    DIR\_WrtDate & 24 & 2 & 文件的最后写入日期\\ \midrule
+    DIR\_FstClusLO & 26 & 2 & 本记录的起始数据簇号的低16位\\ \midrule
+    DIR\_FileSize & 28 & 4 & 文件大小（单位字节）\\
+    \bottomrule
+\end{longtable}
+
+关于DIR\_Name[0]有几点要注意：
+\begin{itemize}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt]
+    \item 如果DIR\_Name[0]=0xE5，该记录块（32Bytes Entry）为空闲记录；
+    \item 如果DIR\_Name[0]=0x00，该记录为空的同时，在它之后的所有记录块都为空；
+    \item 如果DIR\_Name[0]=0x05，事实上等同与「0xE5」。
+\end{itemize}
+
+DIR\_Name[0]必须不等于「0x20」。文件名和扩展名之间的「.」是隐含的，不会出现在DIR\_Name中。
+DIR\_Name中不允许出现小写字母。下面的值对DIR\_Name而言是\textbf{非法}值：
+\begin{itemize}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt]
+    \item 除了在DIR\_Name[0]可以出现的「0x05」外，任何小于「0x20」的值均不合法；
+    \item 「0x22」，「0x2A」，「0x2B」，「0x2C」，「0x2E」，「0x2F」，「0x3A」，「0x3B」，「0x3C」，
+        「0x3D」，「0x3E」，「0x3F」，「0x5B」，「0x5C」，「0x5D」和「0x7C」均不合法。
+\end{itemize}
+
+\section{FSINFO}
+\label{sec:fsinfo}
+
+在FAT32文件系统中，FAT表可能是占据非常大空间的数据结构，在这一点上并不同于FAT16的FAT表最大128KB，
+或者FAT12的FAT表最大只能是6KB。因此FAT32的每个文件卷都采取了一种措施以便在API调用时能够迅速找到空闲簇号，
+即通过记录最后一个已分配的簇号的办法。「FSInfo」扇区号记录在「BPB\_FSInfo」域，对微软的操作系统而言，
+该值总被设置为「1」。表\ref{tab:fsinfo}显示了「FSInfo」扇区的详细结构。
+\begin{longtable}[!htb]{cccp{7cm}}
+    \caption{FAT32的FSInfo扇区结构}\label{tab:fsinfo}\\
+    \toprule
+    名称 & 偏移 & 大小 & \makecell{c}{描述} \\ \midrule
+    FSI\_LeadSig & 0 & 4 & 值必须为「0x41615252」。该引导值用来标志本扇区是FSinfo扇区。\\ \midrule
+    FSI\_Reserved1 & 4 & 480 & 保留域。FAT32格式总是初始化为「0」，并且目前此域的字节都不可用。\\ \midrule
+    FSI\_StrucSig & 484 & 4 & 值必须为「0x61417272」。另一个标志位。\\ \midrule
+    FSI\_Free\_Count & 488 & 4 & 储存了该卷当前已知的空闲簇的总数。如果此域为「0xFFFFFFFF」，
+        则空闲簇总数未知并且需要计算。该域值需作范围检测以保证其不大于文件卷的总簇数。\\ \midrule
+    FSI\_Nxt\_Free & 492 & 4 & 该域指示了文件系统应该从哪个簇号开始搜索。通常该值会被设为最后一个已分配的簇号，
+        如果此域的值为「0xFFFFFFFF」，那么文件系统需要从「2」号簇开始搜索。\\ \midrule
+    FSI\_Reserved2 & 496 & 12 & 保留域。初始化时置零。当前不可用。\\ \midrule
+    FSI\_TrailSig & 508 & 4 & 值为「0xAA550000」。指示本扇区为FSInfo扇区。\\
+    \bottomrule
+\end{longtable}
+
+\section{本章小结}
+\label{sec:sum2}
+本章详细说明了FAT文件系统的基本信息及相关数据结构组成，对FAT的重要结构（如BPB结构、
+FAT表结构等）做了比较详细的说明，对文件系统的目录结构、类型定义也进行了详细阐述，
+同时对部分算法（如计算总簇数，计算FAT表起始扇区等）做了伪代码的描述，
+这为之后的文件系统的实现做好了理论准备。

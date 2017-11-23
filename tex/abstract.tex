@@ -1,0 +1,65 @@
+%%==================================================
+%% abstract.tex for SJTU Master Thesis
+%%==================================================
+
+\begin{abstract}
+安全数位卡，即SD卡（Secure Digital Memory Card），是一种存储卡，被广泛应用于便携设备上。
+
+单片机，即单片微型计算机（Single-chip Microcomputer），是把中央处理器、存储器、定时/计数器、
+各种输入输出接口等都集成在一块集成电路芯片上的微型计算机。
+与应用在个人电脑中的通用型微处理器相比，它更强调自供应（不用外接硬件）和节约成本。
+它的最大优点是体积小，可放在仪表内部，但存储量小，输入输出接口简单，故需要外接存储设备，SD卡就是经济高效的最佳选择。
+
+然而51单片机并没有SD卡接口，同时，单片机从SD卡读写的数据要与计算机实现兼容性，要求其必须支持相应的文件系统。
+鉴于目前计算机大多使用微软（Microsoft）的FAT32文件系统，本课题所要设计的文件接口将在支持FAT32文件系统的同时，
+解决51单片机与计算机通过SD卡的通信问题。
+
+本课题通过模块化的设计方法，自顶向下分层设计相应的子模块以实现相应部分功能。并且，
+在各个模块之间仅留出下层对上层的函数接口，这样既利于子模块单独测试，又便于各个模块的移植，
+同时整个工程框架清晰，层次分明，便于调试。
+具体函数的设计实现，各个参数的选取设置均以官方说明文档为准。
+
+为了令本文件接口具有良好的可移植性以及标准性，本课题在设计研究过程中参考了一些开源项目以及官方文档，
+严格做到契合相关协议和规范，同时不失自己的特色，为本地差异化配置留出了足够空间。
+最终，本接口实现了对FAT32文件系统的挂载识别，文件的打开关闭，创建删除以及读写功能。
+对底层的SD卡具有识别能力，能够识别SDSC、SDHC／XC，能够识别「MBR」和「DBR」扇区。
+
+通过本课题的实践，我不仅对FAT32文件系统有了深刻的认识和了解，并且对SD卡的底层协议规范有了彻底的认知，最终，
+基于微处理器的文件接口的实现更是说明了在51单片机这类资源有限的微型计算机上搭建对大型文件系统（如FAT32）的接口支持
+是可行的。
+
+\keywords{ 单片机，FAT32，SD卡，文件接口 }
+\end{abstract}
+
+\begin{englishabstract}
+
+Secure Digital cards, 
+a memory card, is widely used in portable devices.
+
+A variety of input and output interfaces are all integrated on a single integrated circuit chip microcomputers,
+which is called Single-chip Microcomputer.
+Its biggest advantage is small size, can be placed inside of the instrument.
+While its poor amounts of storage, it requires an external storage device that SD card is a cost-effective choice.
+
+However, the C8051 MCU have no SD card interface.
+Given the mostly computer using Microsoft OS, whose file system is FAT32.
+The file interfaces to be designed for this project will support the FAT32 file system at the same time,
+C8051 MCU can communicate and share the data with computer by SD card.
+
+The specific functions and parameters will be ruled by official documents.
+
+In order to make the file interface portable and standard, 
+reference is made to some open source projects as well as official documents in my design and implementation process.
+Strictly to fit the relevant agreements and norms, without losing its own characteristics,
+the interface set aside enough space for local specific configuration.
+Ultimately, this interface for FAT32 file system can mount and identify file system, open and close files,
+create and delete files, and R/W files.
+The bottom sub-module has an identification ability to identify SDSC, SDHC / XC, and also MBR or DBR.
+
+Through the practice of the subject, I have a deep knowledge and understanding of the FAT
+file system and SD card. Meanwhile, the problem that  MCU shared information and data hard with PC by SD card
+has been solved. It proves that MCU communicate with PC through formatted files is available.
+
+\englishkeywords{SDC, MCU, FAT, file interface}
+\end{englishabstract}
+

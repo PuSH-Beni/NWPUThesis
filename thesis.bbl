@@ -1,0 +1,382 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 2.4 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \sortlist{none}{none}
+    \entry{mcu1}{book}{}
+      \name{labelname}{1}{}{%
+        {{hash=fa2285291b3882a69e3a66240ac97837}{李朝青}{李\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=fa2285291b3882a69e3a66240ac97837}{李朝青}{李\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \list{publisher}{1}{%
+        {北京航空航天大学出版社}%
+      }
+      \strng{namehash}{fa2285291b3882a69e3a66240ac97837}
+      \strng{fullhash}{fa2285291b3882a69e3a66240ac97837}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{单片机原理及接口技术[M]}
+      \field{number}{999}
+      \field{title}{单片机原理及接口技术[M]}
+      \field{userf}{zh}
+      \field{volume}{1}
+      \field{year}{1999}
+    \endentry
+    \entry{mcu2}{book}{}
+      \name{labelname}{1}{}{%
+        {{hash=6b65f670380f4a7e2ee0334233a5572d}{汉才}{汉\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=6b65f670380f4a7e2ee0334233a5572d}{汉才}{汉\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \list{publisher}{1}{%
+        {清华大学出版社}%
+      }
+      \strng{namehash}{6b65f670380f4a7e2ee0334233a5572d}
+      \strng{fullhash}{6b65f670380f4a7e2ee0334233a5572d}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{单片机原理及系统设计[M]}
+      \field{title}{单片机原理及系统设计[M]}
+      \field{userf}{zh}
+      \field{year}{2002}
+    \endentry
+    \entry{mcu3}{book}{}
+      \name{labelname}{1}{}{%
+        {{hash=8b07dc2ad3ee8bee8159774388e34f8c}{何立民}{何\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=8b07dc2ad3ee8bee8159774388e34f8c}{何立民}{何\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \list{publisher}{1}{%
+        {北京航空航天大学出版社}%
+      }
+      \strng{namehash}{8b07dc2ad3ee8bee8159774388e34f8c}
+      \strng{fullhash}{8b07dc2ad3ee8bee8159774388e34f8c}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{MCS-51 系列单片机应用系统设计[M]}
+      \field{number}{990}
+      \field{title}{MCS-51 系列单片机应用系统设计[M]}
+      \field{userf}{zh}
+      \field{volume}{1}
+      \field{year}{1990}
+    \endentry
+    \entry{mcu4}{article}{}
+      \name{labelname}{1}{}{%
+        {{hash=d70fa2eec26b0eb9b6cf6d80a939d0b8}{马忠梅}{马\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=d70fa2eec26b0eb9b6cf6d80a939d0b8}{马忠梅}{马\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \strng{namehash}{d70fa2eec26b0eb9b6cf6d80a939d0b8}
+      \strng{fullhash}{d70fa2eec26b0eb9b6cf6d80a939d0b8}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{单片机的 C 语言应用程序设计[J]}
+      \field{journaltitle}{单片机与嵌入式系统应用}
+      \field{number}{10}
+      \field{title}{单片机的 C 语言应用程序设计[J]}
+      \field{userf}{zh}
+      \field{year}{2003}
+      \field{pages}{46\bibrangedash 46}
+    \endentry
+    \entry{lfn1}{article}{}
+      \name{labelname}{1}{}{%
+        {{hash=bd1e22b3e4358db9ab1a30cb473ea696}{陈代军}{陈\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=bd1e22b3e4358db9ab1a30cb473ea696}{陈代军}{陈\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \strng{namehash}{bd1e22b3e4358db9ab1a30cb473ea696}
+      \strng{fullhash}{bd1e22b3e4358db9ab1a30cb473ea696}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{解析 FAT 文件系统对长文件名的支持[J]}
+      \field{journaltitle}{成都信息工程学院学报}
+      \field{number}{4}
+      \field{title}{解析 FAT 文件系统对长文件名的支持[J]}
+      \field{userf}{zh}
+      \field{volume}{18}
+      \field{year}{2004}
+      \field{pages}{381\bibrangedash 385}
+    \endentry
+    \entry{fatms}{book}{}
+      \name{labelname}{1}{}{%
+        {{hash=140864078aeca1c7c35b4beb33c53c34}{Microsoft}{M\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=140864078aeca1c7c35b4beb33c53c34}{Microsoft}{M\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{location}{1}{%
+        {USA}%
+      }
+      \list{publisher}{1}{%
+        {Microsoft Corporation}%
+      }
+      \strng{namehash}{140864078aeca1c7c35b4beb33c53c34}
+      \strng{fullhash}{140864078aeca1c7c35b4beb33c53c34}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{Microsoft Extensible Firmware Initiative FAT32 File System Specification[M]}
+      \field{edition}{Version 1.03}
+      \field{note}{FAT: General Overview of On-Disk Format}
+      \field{title}{Microsoft Extensible Firmware Initiative FAT32 File System Specification[M]}
+      \field{userf}{en}
+      \field{year}{2001}
+    \endentry
+    \entry{fat5}{inproceedings}{}
+      \name{labelname}{3}{}{%
+        {{hash=97422861f9e3f6c8f48850dad8a61b0b}{Munegowda}{M\bibinitperiod}{Keshava}{K\bibinitperiod}{}{}{}{}}%
+        {{hash=ac8d4eefcf17a6f47c69f8d8dc5952d1}{Venkatraman}{V\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=712a3d5b6ee3a601ed22271191607280}{Raju}{R\bibinitperiod}{Dr\bibnamedelima GT}{D\bibinitperiod\bibinitdelim G\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{3}{}{%
+        {{hash=97422861f9e3f6c8f48850dad8a61b0b}{Munegowda}{M\bibinitperiod}{Keshava}{K\bibinitperiod}{}{}{}{}}%
+        {{hash=ac8d4eefcf17a6f47c69f8d8dc5952d1}{Venkatraman}{V\bibinitperiod}{S}{S\bibinitperiod}{}{}{}{}}%
+        {{hash=712a3d5b6ee3a601ed22271191607280}{Raju}{R\bibinitperiod}{Dr\bibnamedelima GT}{D\bibinitperiod\bibinitdelim G\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{58ee4d7eca58932b8b6a97b2eb449d5b}
+      \strng{fullhash}{58ee4d7eca58932b8b6a97b2eb449d5b}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{The Extend FAT file system: Differentiating with FAT32 file system[C]}
+      \field{booktitle}{Linux Conference, Prague, Czech Republic, Europe}
+      \field{title}{The Extend FAT file system: Differentiating with FAT32 file system[C]}
+      \field{userf}{en}
+      \field{year}{2011}
+    \endentry
+    \entry{fat4}{article}{}
+      \name{labelname}{1}{}{%
+        {{hash=7231c37f985147c7f40182f0fff89a91}{Stoffregen}{S\bibinitperiod}{Paul}{P\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=7231c37f985147c7f40182f0fff89a91}{Stoffregen}{S\bibinitperiod}{Paul}{P\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{7231c37f985147c7f40182f0fff89a91}
+      \strng{fullhash}{7231c37f985147c7f40182f0fff89a91}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{Understanding FAT32 Filesystems[J]}
+      \field{journaltitle}{PJRC. Feb}
+      \field{title}{Understanding FAT32 Filesystems[J]}
+      \field{userf}{en}
+      \field{volume}{24}
+      \field{year}{2005}
+    \endentry
+    \entry{fat8}{article}{}
+      \name{labelname}{1}{}{%
+        {{hash=b295b5ec959897c7a68f80be78bdd0d9}{Ya-zhou}{Y\bibinithyphendelim z\bibinitperiod}{Ren}{R\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=b295b5ec959897c7a68f80be78bdd0d9}{Ya-zhou}{Y\bibinithyphendelim z\bibinitperiod}{Ren}{R\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{b295b5ec959897c7a68f80be78bdd0d9}
+      \strng{fullhash}{b295b5ec959897c7a68f80be78bdd0d9}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{Research in FAT32 File System[J]}
+      \field{journaltitle}{Computer Knowledge and Technology}
+      \field{number}{6}
+      \field{title}{Research in FAT32 File System[J]}
+      \field{userf}{en}
+      \field{volume}{3}
+      \field{year}{2008}
+    \endentry
+    \entry{fatrv}{article}{}
+      \name{labelname}{2}{}{%
+        {{hash=647c0b927be42465461d99d7c867bd38}{Bhat}{B\bibinitperiod}{WASIM\bibnamedelima AHMAD}{W\bibinitperiod\bibinitdelim A\bibinitperiod}{}{}{}{}}%
+        {{hash=3bfc321c4a8da82def67115b30a0845f}{Quadri}{Q\bibinitperiod}{SMK}{S\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{2}{}{%
+        {{hash=647c0b927be42465461d99d7c867bd38}{Bhat}{B\bibinitperiod}{WASIM\bibnamedelima AHMAD}{W\bibinitperiod\bibinitdelim A\bibinitperiod}{}{}{}{}}%
+        {{hash=3bfc321c4a8da82def67115b30a0845f}{Quadri}{Q\bibinitperiod}{SMK}{S\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{90bb6dc1fdb9316456a1958033466b0d}
+      \strng{fullhash}{90bb6dc1fdb9316456a1958033466b0d}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{Review of FAT Data Structure of FAT32 file system[J]}
+      \field{journaltitle}{Oriental Journal of Computer Science \& Technology}
+      \field{number}{1}
+      \field{title}{Review of FAT Data Structure of FAT32 file system[J]}
+      \field{userf}{en}
+      \field{volume}{3}
+      \field{year}{2010}
+    \endentry
+    \entry{sdgp}{book}{}
+      \name{labelname}{1}{}{%
+        {{hash=2360527893bb7377223635439eb66ed3}{SD}{S\bibinitperiod}{Group}{G\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=2360527893bb7377223635439eb66ed3}{SD}{S\bibinitperiod}{Group}{G\bibinitperiod}{}{}{}{}}%
+      }
+      \list{location}{1}{%
+        {SanRamon,CA 94583 USA}%
+      }
+      \list{publisher}{1}{%
+        {SD Card Association}%
+      }
+      \strng{namehash}{2360527893bb7377223635439eb66ed3}
+      \strng{fullhash}{2360527893bb7377223635439eb66ed3}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{SD Specifications Part 1 Physical Layer[M]}
+      \field{edition}{Version 4.10}
+      \field{title}{SD Specifications Part 1 Physical Layer[M]}
+      \field{userf}{en}
+      \field{year}{2013}
+    \endentry
+    \entry{fat6}{article}{}
+      \name{labelname}{3}{}{%
+        {{hash=8c0d8d495d30364a6fdc14d3ee19f5b7}{Wang}{W\bibinitperiod}{W}{W\bibinitperiod}{}{}{}{}}%
+        {{hash=a93171e6e9a0fbae5b527ed4a0413318}{Liang}{L\bibinitperiod}{F}{F\bibinitperiod}{}{}{}{}}%
+        {{hash=9433e8fd118bf7a56432e93455427413}{Gao}{G\bibinitperiod}{H}{H\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{3}{}{%
+        {{hash=8c0d8d495d30364a6fdc14d3ee19f5b7}{Wang}{W\bibinitperiod}{W}{W\bibinitperiod}{}{}{}{}}%
+        {{hash=a93171e6e9a0fbae5b527ed4a0413318}{Liang}{L\bibinitperiod}{F}{F\bibinitperiod}{}{}{}{}}%
+        {{hash=9433e8fd118bf7a56432e93455427413}{Gao}{G\bibinitperiod}{H}{H\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{f6617df7291af24bd1cee29320088f94}
+      \strng{fullhash}{f6617df7291af24bd1cee29320088f94}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{Implementation of FAT32 file system on embedded system [J]}
+      \field{journaltitle}{Electronic Measurement Technology}
+      \field{title}{Implementation of FAT32 file system on embedded system [J]}
+      \field{userf}{en}
+      \field{volume}{9}
+      \field{year}{2009}
+      \field{pages}{035}
+    \endentry
+    \entry{fatfs}{online}{}
+      \name{labelname}{1}{}{%
+        {{hash=f55ac433564d6f15e240edce4aa080f6}{ChaN}{C\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{1}{}{%
+        {{hash=f55ac433564d6f15e240edce4aa080f6}{ChaN}{C\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \strng{namehash}{f55ac433564d6f15e240edce4aa080f6}
+      \strng{fullhash}{f55ac433564d6f15e240edce4aa080f6}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{FatFs - Generic FAT File System Module}
+      \field{title}{FatFs - Generic FAT File System Module}
+      \field{urlyear}{2015}
+      \field{userf}{en}
+      \verb{url}
+      \verb http://elm-chan.org/fsw/ff/00index_e.html
+      \endverb
+    \endentry
+    \entry{spi1}{article}{}
+      \name{labelname}{2}{}{%
+        {{hash=3f9caef359028865a148dc5b5e0b4ed6}{杨美刚}{杨\bibinitperiod}{}{}{}{}{}{}}%
+        {{hash=167c9f1528472bb230c1ac7021b3c152}{李小文}{李\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{2}{}{%
+        {{hash=3f9caef359028865a148dc5b5e0b4ed6}{杨美刚}{杨\bibinitperiod}{}{}{}{}{}{}}%
+        {{hash=167c9f1528472bb230c1ac7021b3c152}{李小文}{李\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \strng{namehash}{22cc86e60cebf767c96671d6cca9ce0c}
+      \strng{fullhash}{22cc86e60cebf767c96671d6cca9ce0c}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{SPI 接口及其在数据交换中的应用[J]}
+      \field{journaltitle}{通信技术}
+      \field{number}{11}
+      \field{title}{SPI 接口及其在数据交换中的应用[J]}
+      \field{userf}{zh}
+      \field{year}{2008}
+      \field{pages}{385\bibrangedash 387}
+    \endentry
+    \entry{sdfat1}{article}{}
+      \name{labelname}{3}{}{%
+        {{hash=26131d775683dba68de82ef6e0db058a}{李世奇}{李\bibinitperiod}{}{}{}{}{}{}}%
+        {{hash=7f8bdcbcb49309592680279867e1fb47}{董浩斌}{董\bibinitperiod}{}{}{}{}{}{}}%
+        {{hash=300b452e5b85904ecef43875b25b2242}{李荣生}{李\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \name{author}{3}{}{%
+        {{hash=26131d775683dba68de82ef6e0db058a}{李世奇}{李\bibinitperiod}{}{}{}{}{}{}}%
+        {{hash=7f8bdcbcb49309592680279867e1fb47}{董浩斌}{董\bibinitperiod}{}{}{}{}{}{}}%
+        {{hash=300b452e5b85904ecef43875b25b2242}{李荣生}{李\bibinitperiod}{}{}{}{}{}{}}%
+      }
+      \list{language}{1}{%
+        {chinese}%
+      }
+      \strng{namehash}{7ef0190b14e44f26632a4dc21452c399}
+      \strng{fullhash}{7ef0190b14e44f26632a4dc21452c399}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{基于 FatFs 文件系统的 SD 卡存储器设计[J]}
+      \field{journaltitle}{测控技术}
+      \field{number}{12}
+      \field{title}{基于 FatFs 文件系统的 SD 卡存储器设计[J]}
+      \field{userf}{zh}
+      \field{volume}{30}
+      \field{year}{2011}
+      \field{pages}{79\bibrangedash 81}
+    \endentry
+    \entry{sdfat2}{article}{}
+      \name{labelname}{3}{}{%
+        {{hash=7148de383baa80de3a6b13dd22492adc}{Yang}{Y\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+        {{hash=4e6fe5946a342625d61c1d8e3370d779}{Chen}{C\bibinitperiod}{F}{F\bibinitperiod}{}{}{}{}}%
+        {{hash=b62af43b7bb7b5dc06b4ba4eb9f54bba}{Wu}{W\bibinitperiod}{X\bibnamedelima J}{X\bibinitperiod\bibinitdelim J\bibinitperiod}{}{}{}{}}%
+      }
+      \name{author}{3}{}{%
+        {{hash=7148de383baa80de3a6b13dd22492adc}{Yang}{Y\bibinitperiod}{M}{M\bibinitperiod}{}{}{}{}}%
+        {{hash=4e6fe5946a342625d61c1d8e3370d779}{Chen}{C\bibinitperiod}{F}{F\bibinitperiod}{}{}{}{}}%
+        {{hash=b62af43b7bb7b5dc06b4ba4eb9f54bba}{Wu}{W\bibinitperiod}{X\bibnamedelima J}{X\bibinitperiod\bibinitdelim J\bibinitperiod}{}{}{}{}}%
+      }
+      \strng{namehash}{8120829b497c2c1945922dc2db90ed9f}
+      \strng{fullhash}{8120829b497c2c1945922dc2db90ed9f}
+      \field{sortinit}{0}
+      \field{sortinithash}{a08a9549c5c2429f8cec5d1a581b26ca}
+      \field{labeltitle}{Design of FAT32 File System of SD Card in Embedded System [J]}
+      \field{journaltitle}{Audio Engineering}
+      \field{title}{Design of FAT32 File System of SD Card in Embedded System [J]}
+      \field{userf}{en}
+      \field{volume}{4}
+      \field{year}{2010}
+      \field{pages}{012}
+    \endentry
+  \endsortlist
+\endrefsection
+\endinput
+
