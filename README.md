@@ -1,7 +1,7 @@
 What is This Template?
 ======
 
-NWPUThesis is an *unofficial* XeLaTeX template for preparing bachelor, ~~master, or doctor~~ thesis in Northwestern Polytechinal University, which is based on [SJTUThesis]().
+NWPUThesis is an *unofficial* XeLaTeX template for preparing bachelor, ~~master, or doctor~~ thesis in Northwestern Polytechinal University, which is based on [SJTUThesis](https://github.com/weijianwen/SJTUThesis).
 
 西北工业大学论文模板 for **Bachelor** degree in Science
 ======
